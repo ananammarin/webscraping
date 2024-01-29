@@ -1,0 +1,604 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Node.js and HTML</title>
+  <!-- Add Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Add Prompt font -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap">
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <!-- Include Axios library -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <!-- Add this in your <head> section -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+</head>
+<style>
+  body {
+    font-family: 'Prompt', sans-serif;
+  }
+
+  .container {
+    max-width: 800px;
+  }
+</style>
+
+<body class="bg-light">
+  <div class="container mt-5">
+    <h1 class="display-4 text-center"></h1>
+    <div class="mb-3">
+      <label for="urlInput" class="form-label">ลิงค์ที่ต้องการดึงข้อมูล:</label>
+      <div class="input-group">
+        <input type="text" class="form-control" id="urlInput" placeholder="https://example.com"
+          value="https://www.feasyonline.com/myproperty/project/summary?pid=100764&token=f3c98637-ffd1-4a86-a12b-1b8f0683c80e">
+        <button class="btn btn-primary" id="runNode">ดึงข้อมูล</button>
+      </div>
+    </div>
+
+    <div id="output" class="mt-4"></div>
+
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" class="text-center mt-3" style="display: none;">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">กำลังดึงข้อมูล โปรดอย่ารีเฟรช</span>
+      </div>
+      <p>กำลังดึงข้อมูล โปรดอย่ารีเฟรช</p>
+    </div>
+  </div>
+
+  <form id="formtosalesforce">
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">หัวข้อประกาศ</h5>
+          <div class="mb-3">
+            <label for="title" class="form-label">หัวข้อ</label>
+            <input type="text" class="form-control" id="title" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="titleEng" class="form-label">หัวข้อ English</label>
+            <input type="text" class="form-control" id="titleEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">ตำบล/แขวง</h5>
+          <div class="mb-3">
+            <label for="subdistrict" class="form-label">ตำบล</label>
+            <input type="text" class="form-control" id="subdistrict" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="subdistrictEng" class="form-label">ตำบล English</label>
+            <input type="text" class="form-control" id="subdistrictEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">อำเภอ/เขต</h5>
+          <div class="mb-3">
+            <label for="district" class="form-label">อำเภอ</label>
+            <input type="text" class="form-control" id="district" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="districtEng" class="form-label">อำเภอ English</label>
+            <input type="text" class="form-control" id="districtEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">จังหวัด</h5>
+          <div class="mb-3">
+            <label for="province" class="form-label">จังหวัด</label>
+            <input type="text" class="form-control" id="province" placeholder="">
+            <div class="mb-3">
+              <label for="provinceEng" class="form-label">จังหวัด English</label>
+              <input type="text" class="form-control" id="provinceEng" placeholder="">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">พิกัด</h5>
+          <div class="mb-3">
+            <label for="mapLink" class="form-label">Map link</label>
+            <input type="text" class="form-control" id="mapLink" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="latitude" class="form-label">latitude:</label>
+            <input type="text" class="form-control" id="latitude" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="longitude" class="form-label">longitude:</label>
+            <input type="text" class="form-control" id="longitude" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">ขนาดที่ดิน</h5>
+          <div class="mb-3">
+            <label for="rai" class="form-label">ไร่:</label>
+            <input type="text" class="form-control" id="rai" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="ngan" class="form-label">งาน:</label>
+            <input type="text" class="form-control" id="ngan" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="squareWah" class="form-label">ตารางวา:</label>
+            <input type="text" class="form-control" id="squareWah" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">ราคาขาย</h5>
+          <div class="mb-3">
+            <label for="price" class="form-label">ราคา:</label>
+            <input type="text" class="form-control" id="price" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">ผังเมืองปัจจุบัน</h5>
+          <div class="mb-3">
+            <label for="cityPlan" class="form-label">ผังเมือง:</label>
+            <input type="text" class="form-control" id="cityPlan" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="cityPlanEng" class="form-label">ผังเมือง Eng:</label>
+            <input type="text" class="form-control" id="cityPlanEng" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="yor" class="form-label">ย. (พื้นที่ หรือ หมายเลข):</label>
+            <input type="text" class="form-control" id="yor" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="yorEng" class="form-label">ย. English:</label>
+            <input type="text" class="form-control" id="yorEng" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="far" class="form-label">FAR :</label>
+            <input type="text" class="form-control" id="far" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="cityPlanProvince" class="form-label">ผังเมืองจังหวัด :</label>
+            <input type="text" class="form-control" id="cityPlanProvince" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="cityPlanProvinceEng" class="form-label">ผังเมืองจังหวัด English:</label>
+            <input type="text" class="form-control" id="cityPlanProvinceEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">ผังเมืองอนาคต</h5>
+          <div class="mb-3">
+            <label for="futureCityPlan" class="form-label">ผังเมืองอนาคต:</label>
+            <input type="text" class="form-control" id="futureCityPlan" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="futureCityPlanEng" class="form-label">ผังเมืองอนาคต English:</label>
+            <input type="textEng" class="form-control" id="futureCityPlanEng" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="yorfutureCityPlan" class="form-label">ย. อนาคต:</label>
+            <input type="text" class="form-control" id="yorfutureCityPlan" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="yorfutureCityPlanEng" class="form-label">ย. อนาคต English:</label>
+            <input type="text" class="form-control" id="yorfutureCityPlanEng" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="faryorfutureCityPlan" class="form-label">FAR. อนาคต :</label>
+            <input type="text" class="form-control" id="faryorfutureCityPlan" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="cityPlanProvincefuture" class="form-label">ผังเมืองจังหวัดอนาคต :</label>
+            <input type="text" class="form-control" id="cityPlanProvincefuture" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="cityPlanProvincefutureEng" class="form-label">ผังเมืองจังหวัดอนาคต English:</label>
+            <input type="text" class="form-control" id="cityPlanProvincefutureEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">หน้ากว้าง ความลึก</h5>
+          <div class="mb-3">
+            <label for="width" class="form-label">หน้ากว้าง:</label>
+            <input type="text" class="form-control" id="width" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="landDepth" class="form-label"><span style="color: red;">ความลึกที่ดิน
+                (ต้องกรอกด้วยตนเอง)</span></label>
+            <input type="number" class="form-control" id="landDepth" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">ความกว้าถนนหน้าที่ดิน</h5>
+          <div class="mb-3">
+            <label for="roadWidth" class="form-label">ถนนหน้าที่ดินกว้าง:</label>
+            <input type="text" class="form-control" id="roadWidth" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">พื้นที่ห้ามก่อสร้าง</h5>
+          <div class="mb-3">
+            <label for="noConstruction" class="form-label">ห้ามก่อสร้าง:</label>
+            <input type="text" class="form-control" id="noConstruction" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="noConstructionEng" class="form-label">ห้ามก่อสร้าง English</label>
+            <input type="text" class="form-control" id="noConstructionEng" placeholder="">
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">สถานที่ใกล่เคียง</h5>
+          <div class="mb-3">
+            <label for="nearby" class="form-label">สถานที่ใกล้เคียง :</label>
+            <small id="noConstructionHelp" class="form-text text-muted">
+              <textarea id="nearby" class="form-control" placeholder="ระบุสถานที่" rows="10"></textarea>
+            </small>
+          </div>
+          <div class="mb-3">
+            <label for="nearbyEng" class="form-label">สถานที่ใกล้เคียง English</label>
+            <small id="noConstructionHelp" class="form-text text-muted">
+              <textarea id="nearbyEng" class="form-control" placeholder="ระบุสถานที่" rows="10"></textarea>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">รายละเอียด</h5>
+          <div class="mb-3">
+            <label for="nearby" class="form-label">รายละเอียดเพิ่มเติม :</label>
+            <div id="descriptionThai" style="height: 300px;"></div>
+          </div>
+          <div class="mb-3">
+            <label for="nearby" class="form-label">รายละเอียดเพิ่มเติม :</label>
+            <div id="descriptionEng" style="height: 300px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <h2><span style="color: red;">ส่วนต่อจากคุณคุณต้องกรอกข้อมูลเอง เพื่อให้ข้อมูลสมบูรณ์</span> </h2>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">ระดับความน่าเชื่อถือของข้อมูล %</span></h5>
+          <div class="mb-3">
+            <label for="Level_of_reliability_of_information" class="form-label"><span
+                style="color: red;">ระดับความน่าเชื่อถือของข้อมูล %</span></label>
+            <input type="number" class="form-control" id="Level_of_reliability_of_information" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">ราคาประเมินแปลงสูงสุด ต่อตารางวา</span></h5>
+          <div class="mb-3">
+            <label for="appraisalPrice" class="form-label"><span style="color: red;">ราคาประเมินแปลงสูงสุด
+                ต่อตารางวา</span></label>
+            <input type="number" class="form-control" id="appraisalPrice" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">จำนวนโฉนด</span></h5>
+          <div class="mb-3">
+            <label for="totaltitleDeed" class="form-label"><span style="color: red;">จำนวนโฉนด</span></label>
+            <input type="number" class="form-control" id="totaltitleDeed" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">ชื่อถนน</span></h5>
+          <div class="mb-3">
+            <label for="roadName" class="form-label"><span style="color: red;">ชื่อถนน</span></label>
+            <input type="text" class="form-control" id="roadName" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="roadNameEng" class="form-label"><span style="color: red;">ชื่อถนน English</span></label>
+            <input type="text" class="form-control" id="roadNameEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">สถานะถนน</span></h5>
+          <div class="mb-3">
+            <label for="roadStatus" class="form-label"><span style="color: red;">สถานะถนน</span> :</label>
+            <select class="form-select" id="roadStatus" onchange="updateRoadStatus()">
+              <option value="-">-</option>
+              <option value="ถนนสาธารณะประโยชน์">ถนนสาธารณะประโยชน์</option>
+              <option value="ถนนสาธารณะประโยชน์ตลอดแนว">ถนนสาธารณะประโยชน์ตลอดแนว</option>
+              <option value="ทางสาธารณะประโยชน์">ทางสาธารณะประโยชน์</option>
+              <option value="ทางสาธารณะประโยชน์ตลอดแนว">ทางสาธารณะประโยชน์ตลอดแนว</option>
+              <option value="ทางเป็นเลขที่ดิน">ทางเป็นเลขที่ดิน</option>
+              <option value="ทางเป็นเลขที่ดินตลอดแนว">ทางเป็นเลขที่ดินตลอดแนว</option>
+              <option value="ทางเป็นเลขที่ดินตลอดแนว">ทางเป็นเลขที่ดินตลอดแนว</option>
+              <option value="เลขที่ดินตลอดแนว">เลขที่ดินตลอดแนว</option>
+              <option value="ทางภาระจำยอม">ทางภาระจำยอม</option>
+              <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="roadStatusEng" class="form-label"><span style="color: red;">สถานะถนน Eng</span></label>
+            <input type="text" class="form-control" id="roadStatusEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">ชื่อซอย</span></h5>
+          <div class="mb-3">
+            <label for="soiName" class="form-label"><span style="color: red;">ชื่อซอย</span></label>
+            <input type="text" class="form-control" id="soiName" placeholder="">
+          </div>
+          <div class="mb-3">
+            <label for="soiNameEng" class="form-label"><span style="color: red;">ชื่อซอย</span></label>
+            <input type="text" class="form-control" id="soiNameEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">ค่าใช้จ่ายโอนกรรมสิทธิ์</span></h5>
+          <div class="mb-3">
+            <label for="tranfer" class="form-label"><span style="color: red;">ค่าใช้จ่ายโอนกรรมสิทธิ์</span></label>
+            <input type="text" class="form-control" id="tranfer" placeholder="">
+          </div>
+
+          <div class="mb-3">
+            <label for="tranferEng" class="form-label"><span style="color: red;">ค่าใช้จ่ายโอนกรรมสิทธิ์
+                English</span></label>
+            <input type="text" class="form-control" id="tranferEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">สภาพที่ดิน</span></h5>
+          <div class="mb-3">
+            <label for="Land_and_building_conditions" class="form-label"><span
+                style="color: red;">สภาพที่ดิน</span></label>
+            <select class="form-select" id="Land_and_building_conditions" onchange="updateLandCondition()">
+              <option value="-">-</option>
+              <option value="ถมแล้วระดับถนน ไม่มีสิ่งปลูกสร้าง">ถมแล้วระดับถนน ไม่มีสิ่งปลูกสร้าง</option>
+              <option value="ถมแล้วระดับถนน มีสิ่งปลูกสร้าง">ถมแล้วระดับถนน มีสิ่งปลูกสร้าง</option>
+              <option value="ยังไม่ถม ต่ำกว่าระดับถนน ไม่มีสิ่งปลูกสร้าง">ยังไม่ถม ต่ำกว่าระดับถนน ไม่มีสิ่งปลูกสร้าง
+              </option>
+              <option value="ยังไม่ถม ต่ำกว่าระดับถนน มีสิ่งปลูกสร้าง">ยังไม่ถม ต่ำกว่าระดับถนน มีสิ่งปลูกสร้าง</option>
+              <option value="ยังไม่ถมต่ำกว่าระดับถนน ลักษณะคล้ายป่าชายเลน">ยังไม่ถมต่ำกว่าระดับถนน ลักษณะคล้ายป่าชายเลน
+              </option>
+              <option value="ยังไม่ถมต่ำว่าระดับถนน เป็นบ่อ รอวัดความลึก">ยังไม่ถมต่ำว่าระดับถนน เป็นบ่อ รอวัดความลึก
+              </option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="Land_and_building_conditionsEng" class="form-label"><span style="color: red;">สภาพที่ดิน
+                English</span></label>
+            <input type="text" class="form-control" id="Land_and_building_conditionsEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">สัญญาเช่าในที่ดิน</span></h5>
+          <div class="mb-3">
+            <label for="tenant" class="form-label">สัญญาเช่าในที่ดิน :</label>
+            <select class="form-select" id="tenant" onchange="updateTenantEng()">
+              <option value="">-</option>
+              <option value="รอตรวจสอบ">รอตรวจสอบ</option>
+              <option value="มีสัญญาเช่าในที่ดิน">มีสัญญาเช่าในที่ดิน</option>
+              <option value="ไม่มี">ไม่มี</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="tenantEng" class="form-label">สัญญาเช่าในที่ดิน : Eng :</label>
+            <input type="text" class="form-control" id="tenantEng" placeholder="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">ประเภทเร็คคอร์ด Salesforce *</span></h5>
+          <div class="mb-3">
+            <label for="listing_type" class="form-label"><span style="color: red;">ประเภทเร็คคอร์ด
+                Salesforce</span></label>
+            <select class="form-select" id="listing_type">
+              <option value="">-</option>
+              <option value="0125w00000161U6AAI">Sale</option>
+              <option value="0125w00000161U7AAI">Rent</option>
+              <option value="0125w000000hwlnAAA">Land Sale</option>
+              <option value="0125w000000hwb3AAA">Land Rent</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">ประเภทอสังหา *</span></h5>
+          <div class="mb-3">
+            <label for="PropertyType" class="form-label">ประเภททรัพย์ :</label>
+            <select class="form-select" id="PropertyType">
+              <option value="">-</option>
+              <option value="Apartment">Apartment</option>
+              <option value="Commercial Building">Commercial Building</option>
+              <option value="Condo">Condo</option>
+              <option value="Factory">Factory</option>
+              <option value="Hotel">Hotel</option>
+              <option value="House">House</option>
+              <option value="Land">Land</option>
+              <option value="Office">Office</option>
+              <option value="Office Building">Office Building</option>
+              <option value="Other">Other</option>
+              <option value="Resort">Resort</option>
+              <option value="Townhome">Townhome</option>
+              <option value="Townhouse">Townhouse</option>
+              <option value="Warehouse">Warehouse</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title"><span style="color: red;">นำเข้าบัญชีเอเจนท์คนไหน *</span></h5>
+          <div class="mb-3">
+            <label for="agent" class="form-label">เอเจนท์ :</label>
+            <select class="form-select" id="agent" required>
+              <option value="">-</option>
+              <option value="0055w00000CEiMYAA1">หน่อย</option>
+              <option value="0055w00000CEiMXAA1">พรีม</option>
+              <option value="0055w00000CEiI5AAL">อนันต์</option>
+              <option value="0055w00000CEjCZAA1">สกาย</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title text-danger">โปรดตรวจสอบก่อนมูลก่อนนำเข้า</h5>
+          <!-- Disable the submit button during the request -->
+<input type="submit" class="btn btn-success" id="sendToSalesforce" value="ส่งไปยัง Salesforce" onclick="sendToSalesforce()">
+          <!-- Add a loading spinner -->
+<div class="spinner-border text-primary" role="status" id="loadingSpinner" style="display: none;">
+  <span class="visually-hidden">Loading...</span>
+</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title text-danger">สถานะการนำเข้าข้อมูล</h5>        
+          <div id="response-message"></div>
+        </div>
+      </div>
+    </div>
+
+  </form>
+  <!-- Add Bootstrap JS and Popper.js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
