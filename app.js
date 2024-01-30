@@ -9,6 +9,13 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
 
+// กำหนดตำแหน่งแคชที่เซิร์ฟเวอร์ไม่ได้รวมที่อยู่ $HOME/.cache
+const customCachePath = '/path/to/your/custom/cache';
+
+// กำหนดตัวแปร TMPDIR หรือ TMP เพื่อให้ Puppeteer ใช้ตำแหน่งแคชที่กำหนด
+process.env.TMPDIR = customCachePath;
+process.env.TMP = customCachePath;
+
 // Function to translate a single string
 async function translateText(text) {
     const urlTranslate = 'https://translate.googleapis.com/translate_a/single';
