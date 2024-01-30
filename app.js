@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
@@ -54,7 +54,10 @@ app.get('/runNode', async (req, res) => {
             return res.status(400).json({ message: 'URL is required' });
         }
         // Launch a headless browser with Puppeteer
-        const browser = await puppeteer.launch();
+        const browser = await puppeteer.launch({
+            executablePath: 'C:/Program Files/Google/Chrome/Application/chrome', // ระบุเส้นทางของ Chromium ที่คุณต้องการใช้
+          });
+          
         const page = await browser.newPage();
         // ไปยัง URL ที่ต้องการดึงข้อมูล
         await page.goto(inputUrl);
